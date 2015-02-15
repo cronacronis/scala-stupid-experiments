@@ -1,104 +1,76 @@
 package Week7
+
+import Week7.F._
+
 object waterPouring {
+
+	def test(a: Int): Int = {
+		if(a == 0) a + 1 else a + 2
+		
+	}                                         //> test: (a: Int)Int
+	
+	
+	Vector(5, 3, 2) contains 5                //> res0: Boolean = true
+	test(0)                                   //> res1: Int = 1
+
   val A = Gls(lab = "A", _vol = 4, maxVol = 5, filler = null)
-                                                  //> A  : Week7.Gls = A_[4.0 / 5.0]
+                                                  //> A  : Week7.Gls = [4.0 / 5.0]
   val b = Gls(lab = "b", _vol = 2, maxVol = 3, filler = null)
-                                                  //> b  : Week7.Gls = b_[2.0 / 3.0]
+                                                  //> b  : Week7.Gls = [2.0 / 3.0]
   //A pourTo b pourTo A pourTo b
-  
-  
+ 
   val dstAmount = 6                               //> dstAmount  : Int = 6
   val caps: Vector[Double] = Vector(4, 9)         //> caps  : Vector[Double] = Vector(4.0, 9.0)
-  val glasses = caps.map(Gls.mkLb).toMap          //> glasses  : scala.collection.immutable.Map[String,Week7.Gls] = Map(4 -> 4_[0.
-                                                  //| 0 / 4.0], 9 -> 9_[0.0 / 9.0])
-  val totalCap = { for (glass <- glasses.values) yield glass.maxVol }.sum
-                                                  //> totalCap  : Double = 13.0
-
-  def repour(gs: Iterable[Gls]): Set[Gls] =
-  { (	for
-	  	{	src <- gs
-	    	dst <- gs
-	      if src.lab != dst.lab
-	      val filler = if(src.isEmpty) src.fillFull else src
-	    } yield (filler pourTo dst)
-    ) toSet
-	}                                         //> repour: (gs: Iterable[Week7.Gls])Set[Week7.Gls]
-  repour(glasses.values)                          //> res0: Set[Week7.Gls] = Set(9_[4.0 / 9.0], 4_[4.0 / 4.0])
-  repour(glasses.values).filter(p => p.isSemiFull).flatMap(g => List(g.filler.getOrElse(Tap), g))
-                                                  //> res1: scala.collection.immutable.Set[Week7.Gls] = Set(4_[0.0 / 4.0], 9_[4.0 
-                                                  //| / 9.0])
+  val glasses = caps.map(Gls.mkLb).toMap          //> glasses  : scala.collection.immutable.Map[String,Week7.Gls] = Map(4 -> [0.0 
+                                                  //| / 4.0], 9 -> [0.0 / 9.0])
   
-  def history(g: Gls): List[Gls] = g.filler match {
-  	case null => List(g)
-  	//case Some(Tap) => List(Tap)
-  	case _ => g :: history(g.filler.get)
-  }                                               //> history: (g: Week7.Gls)List[Week7.Gls]
+  val glassesHalf: Glasses = Map( "2" -> new Gls("4", 1, 2, null), "2" -> new Gls("3", 1, 3, null))
+                                                  //> glassesHalf  : Week7.F.Glasses = Map(2 -> [1.0 / 3.0])
   
-  history(repour(glasses.values).head)            //> res2: List[Week7.Gls] = List(9_[4.0 / 9.0], 4_[0.0 / 4.0], Tap_[+/+])
+  //val totalCap = { for (glass <- glasses.values) yield glass.maxVol }.sum
+ 	allVols(glasses)                          //> res2: Vector[Double] = Vector(0.0, 4.0, 9.0)
+ 	
+ 	
+ 	isNew(Gls("test", 1 , 2, null), glasses)  //> res3: Boolean = true
+ 	
+	repourToGenNew(glasses)                   //> res4: Week7.F.Glasses = Map(9 -> [4.0 / 9.0], 4 -> [4.0 / 4.0])
+
+  //repour(glasses)
+  //repour(glassesHalf)
   
-  repour(repour(glasses.values)).filter(p => p.isSemiFull).flatMap(g => List(g.filler.getOrElse(Tap), g))
-                                                  //> res3: scala.collection.immutable.Set[Week7.Gls] = Set(4_[0.0 / 4.0], 9_[8.0
-                                                  //|  / 9.0])
   
-}
+  keepPouring(glasses, dstAmount)                 //> Map(9 -> [4.0 / 9.0], 4 -> [4.0 / 4.0])
+                                                  //| Map(9 -> [4.0 / 9.0], 4 -> [4.0 / 4.0])
+                                                  //| ////
+                                                  //| Map(9 -> [8.0 / 9.0])
+                                                  //| Map(9 -> [8.0 / 9.0])
+                                                  //| ////
+                                                  //| Map()
+                                                  //| Map()
+                                                  //| ////
+                                                  //| Map()
+                                                  //| java.lang.RuntimeException: Dead end reached
+                                                  //| 	at scala.sys.package$.error(package.scala:27)
+                                                  //| 	at scala.Predef$.error(Predef.scala:142)
+                                                  //| 	at Week7.F$.keepPouring(miscFunc.scala:88)
+                                                  //| 	at Week7.waterPouring$$anonfun$main$1.apply$mcV$sp(Week7.waterPouring.sc
+                                                  //| ala:38)
+                                                  //| 	at org.scalaide.worksheet.runtime.library.WorksheetSupport$$anonfun$$exe
+                                                  //| cute$1.apply$mcV$sp(WorksheetSupport.scala:76)
+                                                  //| 	at org.scalaide.worksheet.runtime.library.WorksheetSupport$.redirected(W
+                                                  //| orksheetSupport.scala:65)
+                                                  //| 	at org.scalaide.worksheet.runtime.library.WorksheetSupport$.$execute(Wor
+                                                  //| ksheetSupport.scala:75)
+                                                  //| 	at Week7.waterPouring$.main(Week7.waterPouring.scala:5)
+                                                  //| 	at Week7.waterPouring.main(Week7.waterPouring.scala)
+  //glasses ++ repour(glasses)
+  //repour(repour(repour(glasses)))
+  //repour(glasses.values).filter(p => p.isSemiFull).flatMap(g => List(g.filler.getOrElse(Tap), g))
+  //repour(glasses.values).filter(p => p.isSemiFull).flatMap(g => history(g))
 
-object Gls {
-  def mkLb(cap: Double): (String, Gls) = {
-    val lab = cap.toInt.toString
-    (lab -> Gls(lab, 0, cap, null))
-  }
-}
+ // history(repour(glasses).head)
 
-object Tap extends Gls("Tap", 1e10, 1e20, null){
-	override def fillFull = Tap
-	override def empty = Tap
-	override def pourTo(dst: Gls) = Tap
-	override def toString = lab + "_[+/+]"
-}
-
-case class Gls(
-	val lab: String,
-	_vol: Double,
-	val maxVol: Double,
-	val filler: Option[Gls]) {
-  private val src = this
-  val vol = if (_vol > maxVol) { spilled; maxVol } else _vol
-  val avail: Double = maxVol - vol
+  //repour(repour(glasses.values)).filter(p => p.isSemiFull).flatMap(g => List(g.filler.getOrElse(Tap), g))
+  
 	
-	
-	
-  val isEmpty = vol == 0.0
-  val isFull = vol == maxVol
-  val isSemiFull = !isEmpty && !isFull
-  def hasExact(amount: Double) = vol == amount
-
-  private def fillWith(amount: Double) = Gls(this.lab, this.vol + amount, this.maxVol, Some(Tap))
-  def fillFull = fillWith(maxVol)
-
-  def empty = Gls(lab, 0.0, maxVol, null)
-
-  def spilled = println("Spilled")
-  
-  override def toString =
-    lab + "_" + "[" + vol + " / " + maxVol + "]" //+":" + math.round(vol / maxVol * 100) + "%"
-
-  private def afterPouring(dst: Gls): (Double, Double) = {
-    val transportable = math.min(src.vol, dst.avail)
-    (vol - transportable, dst.vol + transportable)
-  }
-
-  def pourTo(dst: Gls): Gls = {
-    if (src.isEmpty) dst
-    else {
-      val (srcVol, dstVol) = afterPouring(dst)
-      val srcState = Gls(this.lab, srcVol, this.maxVol, this.filler)
-      val dstState = Gls(dst.lab, dstVol, dst.maxVol, Some(srcState))
-      dstState
-    }
-  }
-
-  /*def pourtToEmpty(dst: Glass): (Glass, Glass) = {
-    val (srcGlass, dstGlass) = pourTo(dst)
-    ({ spilled; srcGlass.empty }, dstGlass)
-  }*/
 }
