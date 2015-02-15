@@ -1,55 +1,38 @@
 package Week7
 
-import G.{ hasNewVol, isFound }
-import G.{fillToEmpty, noneToEmpty, fillToNone, noneToNone}
-
+import G.{ hasNewVol, isFound, allVols, pour, simulate }
+import G.{ fillToEmpty, noneToEmpty, fillToNone, noneToNone }
 
 object recursivePour {
   type Glasses = Map[String, Gls]
-  val caps: Vector[Double] = Vector(4, 9)
-  val gs = caps.map(Gls.mkLb).toMap
+  val caps: Vector[Double] = Vector(4, 9)         //> caps  : Vector[Double] = Vector(4.0, 9.0)
+  
+  val gs = caps.map(Gls.mkLb).toMap               //> 4.0
+                                                  //| 9.0
+                                                  //| gs  : scala.collection.immutable.Map[String,Week7.Gls] = Map(4 -> [0.0 / 4.0
+                                                  //| ], 9 -> [0.0 / 9.0])
   ////////////////////////////////////////////////////////////////////////////
-  val src = gs("4")
-  val dst = gs("9")
-  Tap.vol
-  src.Filler
-  dst.Filler
+  val src = gs("4")                               //> src  : Week7.Gls = [0.0 / 4.0]
+  val dst = gs("9")                               //> dst  : Week7.Gls = [0.0 / 9.0]
+  Tap.vol                                         //> res0: Double = 1.0E10
   ////////////////////////////////////////////////////////////////////////
-  def pour(gs: Glasses)(src: Gls, dst: Gls)(f: (Gls, Gls) => Gls): Glasses = {
-    val ndst = f(src, dst)
-    Vector(ndst, ndst.Filler).foldLeft(gs)({ case (gs, g) => gs + Gls.mkGlsTup(g) })
-  }
   pour(gs = gs)(src = dst, dst = dst)(f = fillToNone())
+                                                  //> res1: Week7.G.Glasses = Map(4 -> [0.0 / 4.0], 9 -> [0.0 / 9.0])
+  //pour(gs = gs)(src = dst, dst = dst)(f = fillToNone)
   ////////////////////////////////////////////////////////////////////////
-  
-  val target = 6.0
-  
-  val funs = Vector(fillToEmpty() _ , noneToEmpty () _ , fillToNone() _ , noneToNone()  _)
 
-  def simulate(gs: Glasses, target: Double): Vector[Glasses] = {
-    if (isFound(gs, target))
-      Vector(gs)
-    else {
+  val target = 6.0                                //> target  : Double = 6.0
 
-      val simVec = (for {
-        src <- gs.values
-        dst <- gs.values
-        f <- funs
-        if src.lab != dst.lab
-        val remap = pour(gs)(src, dst)(f)
-        if hasNewVol(gs, remap)
-      } yield remap) toVector
-		
-      //println(simVec)
-      simVec flatMap (gsx => simulate(gsx, target)) take 1
-    }
+  val success = simulate(gs, target)              //> success  : Vector[Week7.G.Glasses] = Vector(Map(4 -> [0.0 / 4.0], 9 -> [6.0 
+                                                  //| / 9.0]))
+
+  success(0)("9").PrintHistory mkString "\n"      //> res2: String = List([6.0 / 9.0])
+                                                  //| List([2.0 / 9.0], [0.0 / 4.0])
+                                                  //| List([2.0 / 9.0], [0.0 / 4.0])
   
-  }
-  
-  //gs
-  
-  val success = simulate(gs, target)
-	success(0)("9").History
+  /*success(0)("9").History
+  success(0)("9").Filler
+  success(0)("9").prevVols
+  success(0)("9").Filler.get.Filler */
   ////////////////////////////////////////////////////////////////////////////////
-  /** Fun: gls => Vector[Gls] */
 }
