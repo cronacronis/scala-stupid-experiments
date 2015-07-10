@@ -1,4 +1,4 @@
-package fpinscala
+package fpinscala.Chapter4
 
 /* https://github.com/fpinscala/fpinscala/tree/master/answerkey */
 
