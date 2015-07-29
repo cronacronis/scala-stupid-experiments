@@ -28,6 +28,35 @@ sealed trait Option[+A] {
 	def filter(f: A => Boolean): Option[A] = this.map(f) flatMap (valid => if (valid) this else None)
 }
 
+object Option {
+	def lift[A,B](f: A => B): Option[A] => Option[B] = _ map f
+	
+	/* E. 4.4 */
+	private def reduceOption[A](lso: Option[List[A]], candidate: Option[A]): Option[List[A]] = {
+		def combine(cand: A): Option[List[A]] = lso map { ls => ls :+ cand }
+		val flatMapped: Option[List[A]] = candidate flatMap combine
+		flatMapped
+	}
+	private def makeOptionalList[A]: Option[List[A]] = Some(List[A]())
+
+//	def sequence[A](ls: List[Option[A]]): Option[List[A]] = {
+//		ls.foldLeft(makeOptionalList[A])({ case (lso, xo) => reduceOption(lso, xo) })
+//	}
+	
+	/* E. 4.5 */
+	def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = {
+		a.foldLeft(makeOptionalList[B])({ case (lso, xo) => reduceOption(lso, f(xo)) })
+	}
+
+	def sequence[A](ls: List[Option[A]]): Option[List[A]] = traverse[Option[A], A](ls)(x => x)
+	
+	/* Ex. 4.3 */
+	def map2[A, B, C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] =
+		a flatMap { aa =>
+			b map { bb => f(aa, bb) }
+		}
+}
+
 object Exercise_4_2 {
 	def mean(xs: Seq[Double]): Option[Double] = {
 		if (xs.isEmpty) None
@@ -39,41 +68,6 @@ object Exercise_4_2 {
 		val subMean = meanVal map (m => xs map { x => math.pow(x - m, 2) })
 		subMean flatMap mean
 	}
-
-}
-
-object Exercise_4_3 {
-	def map2[A, B, C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] =
-		a flatMap { aa =>
-			b map { bb => f(aa, bb) }
-		}
-}
-
-object Exercise_4_4 {
-
-	def reduceOption[A](lso: Option[List[A]], candidate: Option[A]): Option[List[A]] = {
-		//		lso flatMap { ls => candidate map { cand => ls :+ cand } }
-		def combine(cand: A): Option[List[A]] = lso map { ls => ls :+ cand }
-		val flatMapped: Option[List[A]] = candidate flatMap combine
-		flatMapped
-	}
-	def makeOptionalList[A]: Option[List[A]] = Some(List[A]())
-
-	def sequence[A](ls: List[Option[A]]): Option[List[A]] = {
-		ls.foldLeft(makeOptionalList[A])({ case (lso, xo) => reduceOption(lso, xo) })
-		//		ls.foldLeft(makeOptionalList[A])({ case (lso, xo) => reduceOption[A](lso, xo) })
-	}
-}
-
-object Exercise_4_5 {
-	import Exercise_4_4.{ makeOptionalList, reduceOption }
-
-	def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] = {
-		a.foldLeft(makeOptionalList[B])({ case (lso, xo) => reduceOption(lso, f(xo)) })
-	}
-
-	def sequence[A](ls: List[Option[A]]): Option[List[A]] = traverse[Option[A], A](ls)(x => x)
-
 }
 
 trait Either[+E, +A] {
